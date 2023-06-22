@@ -36,3 +36,26 @@ h2 {
     font-size: 22px;
     margin-bottom:30px;
 }
+
+.list-group .gasto{
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+
+    margin-bottom: .8rem;
+}
+.gasto p {
+    margin: 0;
+}
+.list-group .gasto p:nth-child(2) {
+    justify-self: end;
+    padding-inline: .5rem;
+
+    font-weight: bold;
+    font-size: .8rem;
+
+    border-radius: 1rem;
+    color: #fff;
+    background-color: #007bff;
+}
