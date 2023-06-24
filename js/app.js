@@ -2,11 +2,14 @@ import { Presupuesto, UI } from "./classes.js";
 
 const formulario = document.querySelector('#agregar-gasto');
 const contenedorTareas = document.querySelector('#gastos ul');
+const btnPresupuesto = document.querySelector('#btn-presupuesto');
+
 const presupuesto = new Presupuesto();
-const ui = new UI;
+const ui = new UI(presupuesto);
 
 document.addEventListener('DOMContentLoaded', ()=> {
     ingresarPresupuesto();
+    btnPresupuesto.addEventListener('click', ingresarPresupuesto);
     formulario.addEventListener('submit', agregarGasto);
 })
 
@@ -25,9 +28,9 @@ function ingresarPresupuesto() {
     }).then( (result)=> {
         if(result.value) {
             presupuesto.setPresupuesto(result.value);
-            presupuesto.calcularRestante()
+            presupuesto.setRestante();
         }
-        ui.mostrarPresupuesto(presupuesto);
+        ui.mostrarPresupuesto();
     })
 }
 
@@ -37,6 +40,7 @@ function agregarGasto(e) {
     const nombre = document.querySelector('#gasto').value;
     const cantidad = document.querySelector('#cantidad').value;
 
+    //? Validacion de los inputs
     if( nombre === '' || cantidad === '') {
         ui.mostrarAlerta({
             mensaje: 'Debes llenar todos los inputs',
@@ -45,7 +49,7 @@ function agregarGasto(e) {
         return;
     }
     
-    if(isNaN(parseFloat(cantidad))) {
+    if( isNaN( parseFloat(cantidad)) || cantidad <= 0 ) {
         ui.mostrarAlerta({
             mensaje: 'Debes ingresar una cantidad valida',
             tipo: 'error',
@@ -53,20 +57,28 @@ function agregarGasto(e) {
         return;
     }
 
-    const nuevoGasto = {
-        id: Date.now(),
-        nombre,
-        cantidad
-    }
+    const nuevoGasto = { id: Date.now(), nombre, cantidad };
+    presupuesto.agregarGasto(nuevoGasto);
 
-    presupuesto.gastos = [...presupuesto.gastos, nuevoGasto];
-    presupuesto.setRestante();
-    ui.mostrarPresupuesto(presupuesto);
-    ui.mostrarListaGastos(presupuesto.gastos, contenedorTareas);
+    //? Mostrar los cambios en la pantalla
+    ui.mostrarListaGastos(contenedorTareas);
+    ui.actualizarRestante();
     ui.mostrarAlerta({
         mensaje: 'Gasto añadido correctamente',
         tipo: 'correcto',
         contenedor: formulario
     })
     formulario.reset();
+}
+
+export function eliminarGasto(id) {
+    presupuesto.eliminarGasto(id);
+    ui.mostrarListaGastos(contenedorTareas);
+    ui.actualizarRestante();
+    ui.mostrarAlerta({
+        mensaje:'Tarea eliminada',
+        tipo: 'success',
+        contenedor: contenedorTareas
+    })
+    console.log('eliminado');
 }

@@ -1,3 +1,5 @@
+import { eliminarGasto } from "./app.js";
+
 export class Presupuesto {
     constructor(presupuesto, restante) {
         this.presupuesto = presupuesto ?? 0;
@@ -9,47 +11,89 @@ export class Presupuesto {
         this.presupuesto = presupuesto;
     }
 
-    calcularRestante() {
-        this.restante = this.presupuesto - this.gastos.length;
+    setRestante() {
+        const gastado = this.gastos.reduce((total, gasto) => total + parseFloat(gasto.cantidad), 0);
+        this.restante = this.presupuesto - gastado;
     }
 
-    setRestante() {
-        this.gastos.forEach(gasto => {
-            this.restante -= parseFloat(gasto.cantidad);
-        })
+    agregarGasto(gasto) {
+        this.gastos = [...this.gastos, gasto];
+        this.setRestante();
     }
 
     eliminarGasto(id) {
-
+        const nuevosGastos = this.gastos.filter((gasto)=> gasto.id !== id);
+        this.gastos = nuevosGastos;
+        this.setRestante();
     }
 }
 
 export class UI {
-    mostrarPresupuesto(obj) {
-        document.querySelector('#total').textContent = obj.presupuesto;
-        document.querySelector('#restante').textContent = obj.restante;
+    constructor(presupuesto) {
+        this.presupuesto = presupuesto;
     }
 
-    mostrarListaGastos(gastos, contenedor) {
+    mostrarPresupuesto() {
+        const {presupuesto} = this.presupuesto
+        document.querySelector('#total').textContent = presupuesto;
+        this.actualizarRestante();
+        this.comprobarPresupuesto();
+    }
+    actualizarRestante() {
+        const {restante} = this.presupuesto
+        document.querySelector('#restante').textContent = restante;
+        this.comprobarPresupuesto();
+    }
+
+    comprobarPresupuesto() {
+        const {presupuesto, restante} = this.presupuesto;
+        const divRestante = document.querySelector('.restante');
+
+        if( (presupuesto / 4) >= restante) { //? 75%
+            divRestante.classList.add('alert-danger');
+            divRestante.classList.remove('alert-success', 'alert-warning');
+        } 
+        else if( (presupuesto / 2) >= restante) { //? 50%
+            divRestante.classList.add('alert-warning'); 
+            divRestante.classList.remove('alert-success', 'alert-danger');
+        }
+        else { //? +50%
+            divRestante.classList.add('alert-success');
+            divRestante.classList.remove('alert-danger', 'alert-warning');
+        }
+        
+        const boton = document.querySelector('button[type="submit"]');
+        if ( restante <= 0 ) {
+            boton.setAttribute('disabled', '');
+        } else boton.removeAttribute('disabled');
+    }
+
+    mostrarListaGastos(contenedor) {
+        const {gastos} = this.presupuesto;
+
         this.limpiarHTML(contenedor);
+
         gastos.forEach(gasto => {
-            const divGasto = document.createElement('DIV');
-            divGasto.classList.add('gasto');
+            const {id, nombre, cantidad} = gasto;
 
-            const tituloGasto = document.createElement('P');
-            tituloGasto.textContent = gasto.nombre;
+            const nuevoGasto = document.createElement('LI');
+            nuevoGasto.classList.add('gasto');
 
-            const precioGasto = document.createElement('P');
-            precioGasto.textContent = `$${gasto.cantidad}`;
+            const tituloGasto = document.createElement('SPAN');
+            tituloGasto.textContent = nombre;
 
-            const borrarGasto = document.createElement('A');
+            const precioGasto = document.createElement('SPAN');
+            precioGasto.textContent = `$${cantidad}`;
+
+            const borrarGasto = document.createElement('BUTTON');
             borrarGasto.classList.add('btn','btn-danger');
-            borrarGasto.setAttribute('data-id', gasto.id);
-            borrarGasto.setAttribute('href', '');
             borrarGasto.textContent = 'Borrar x';
+            borrarGasto.addEventListener('click', (e)=> {
+                eliminarGasto(id);
+            });
 
-            divGasto.append(tituloGasto, precioGasto, borrarGasto);
-            contenedor.appendChild(divGasto);
+            nuevoGasto.append(tituloGasto, precioGasto, borrarGasto);
+            contenedor.appendChild(nuevoGasto);
         })
     }
 
