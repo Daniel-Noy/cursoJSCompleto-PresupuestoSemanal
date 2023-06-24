@@ -48,7 +48,7 @@ h2 {
 .gasto p {
     margin: 0;
 }
-.list-group .gasto p:nth-child(2) {
+.list-group .gasto span:nth-child(2) {
     justify-self: end;
     padding-inline: .5rem;
 
